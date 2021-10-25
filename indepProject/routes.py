@@ -2,12 +2,14 @@ from indepProject import app
 from flask import render_template, session, request, flash, redirect, url_for
 from .models.shared import db
 from .models import User
+from .tools import Insert_enrollment 
 
 @app.route('/')
 def home():
   if 'username' in session:
     headers=[]
     data_list=[]
+    Insert_enrollment(1,3595946,"sectionTest","A+")
     # Render templates
     return render_template('home.html',usergroup=session['usergroup'].capitalize())
   return render_template('login.html')

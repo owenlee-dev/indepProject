@@ -1,7 +1,8 @@
-import pprint as pp
+# import sys
+# sys.path.append('../')
 import csv
-from ..models.shared import db
-from ..models import Enrollment, Student, Course
+from ..models import Enrollment, Student, Course, db
+
 # Function to extract data from an input file and save in a list of dictionaries
 def Text_to_dictionary_list(input_file):
   subject_list=[]
@@ -19,4 +20,6 @@ def Text_to_dictionary_list(input_file):
 def Insert_enrollment(id,s_id,sect,gr):
   record=Enrollment(course_id=id, student_id=s_id, section=sect, grade=gr)
   db.session.add(record)
-  db.commit()
+  db.session.commit()
+
+
