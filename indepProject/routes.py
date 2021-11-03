@@ -1,12 +1,15 @@
 from indepProject import app
 from flask import render_template, session, request, flash, redirect, url_for
-
+from .tools import upload_course_data,upload_person_data,build_enrollments
 from .models.shared import db
 from .models import User
 
 @app.route('/')
 def home():
   if 'username' in session:
+    upload_person_data("indepProject\inputFiles\personData.txt")
+    upload_course_data("indepProject\inputFiles\CourseData.txt")
+    build_enrollments("indepProject\inputFiles\CourseData.txt")
     return render_template('home.html',usergroup=session['usergroup'].capitalize())
   return render_template('login.html')
     
@@ -38,8 +41,8 @@ def register_user():
     # TODO change these arbitrary check conditions
     elif len(email)<5:
       flash('Email is invalid','error')
-    elif len(password)<6:
-      flash('Password must be at least 6 characters','error')
+    # elif len(password)<6:
+    #   flash('Password must be at least 6 characters','error')
     else:
       register=User(email,password)
       db.session.add(register)

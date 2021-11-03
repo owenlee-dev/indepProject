@@ -8,6 +8,7 @@ app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///'+os.getcwd()+'/database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 with app.app_context():
   db.init_app(app)
+  db.drop_all()
   db.create_all()
 
 # Setup file logger
