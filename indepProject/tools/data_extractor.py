@@ -1,7 +1,7 @@
-from datetime import datetime
 import csv
-import json
 from os import remove
+from datetime import datetime, timedelta
+from indepProject.models.dataset import Dataset
 
 if(__name__!='__main__'):
   from ..models import Enrollment, Student, Course, db
@@ -16,7 +16,8 @@ def pretty_print(input_file):
   for dict in list_of_dictionaries:
     print (dict['Course']+"\n")
 
-def remove_duplicates(list, dup_pk, dup_pk2=None, dup_pk3=None):
+# Function to remove items with a duplicate primary key in a list of dictionaries
+def remove_duplicates(list, dup_pk):
   memo=set()
   result=[]
   for item in list:
@@ -25,9 +26,25 @@ def remove_duplicates(list, dup_pk, dup_pk2=None, dup_pk3=None):
       memo.add(item[dup_pk])
 
   return result
-# pretty_print("indepProject\inputFiles\courseData.txt")
+
+# Fucntion to generate current date time rounded to closest second
+def roundTime(dt=None, roundTo=1):
+   if dt == None : dt = datetime.now()
+   seconds = (dt.replace(tzinfo=None) - dt.min).seconds
+   rounding = (seconds+roundTo/2) // roundTo * roundTo
+   return dt + timedelta(0,rounding-seconds,-dt.microsecond)
 
 #HELPER METHODS_________________________________________________________________________
+
+# Function to upload all 3 data files, extract data and store in db
+def upload_and_extract(person_file, course_file,transfer_file=None):
+  now=roundTime()
+  insert_dataset(now)
+  upload_course_data(course_file,now)
+  upload_person_data(person_file,now)
+  build_enrollments(course_file,now)
+
+
 # Function to extract data from an input file and save in a list of dictionaries
 def text_to_dictionary_list(input_file):
   subject_list=[]
@@ -40,46 +57,46 @@ def text_to_dictionary_list(input_file):
   return subject_list
 
 # Function to insert a record into the student table
-def insert_student(student_id,name,email=None,program=None,campus=None,start_date=None):
-  record=Student(name=name, student_id=student_id,email=email,program=program,campus=campus,start_date=start_date)
+def insert_student(student_id,name,email,program,campus,start_date,dataset):
+  record=Student(name=name, student_id=student_id,email=email,program=program,campus=campus,start_date=start_date,dataset=dataset)
   db.session.add(record)
   db.session.commit()
 
 # Function to insert a record into the course table
-def insert_course(course_id,section,title,credit_hours):
-  record=Course(course_id=course_id, section=section, title=title, credit_hours=credit_hours)
+def insert_course(course_id,section,title,credit_hours,dataset):
+  record=Course(course_id=course_id, section=section, title=title, credit_hours=credit_hours,dataset=dataset)
   db.session.add(record)
   db.session.commit()
 
 # Function to insert a record into the enrollment table
-def insert_enrollment(course_id,student_id,term,grade):
-  record=Enrollment(course_id=course_id, student_id=student_id, term=term, grade=grade)
+def insert_enrollment(course_id,student_id,term,grade,dataset):
+  record=Enrollment(course_id=course_id, student_id=student_id, term=term, grade=grade,dataset=dataset)
   db.session.add(record)
   db.session.commit()
 
-# Function to upload all 3 data files sotred in specified directory
-# def upload_all_files():
-#   upload_course_data()
-#   upload_transfer_data()
-#   upload_person_data()
+# Function to insert a record into the dataset table
+def insert_dataset(upload_datetime):
+  upload_set=Dataset(upload_datetime=upload_datetime)
+  db.session.add(upload_set)
+  db.session.commit()
 
 # Function to extract and upload course_data.txt to database
-def upload_course_data(input_file):
+def upload_course_data(input_file,upload_set):
   course_list=text_to_dictionary_list(input_file)
 
   # remove duplicates based on course_id
   no_dups=remove_duplicates(course_list,"Course")
   for course in no_dups:
-    insert_course(course["Course"],course["Section"],course["Title"], course["Credit_Hrs"])
+    insert_course(course["Course"],course["Section"],course["Title"], course["Credit_Hrs"],upload_set)
 
 #Function to extract and upload person_data.txt to database
-def upload_person_data(input_file):
+def upload_person_data(input_file,upload_set):
   student_list=text_to_dictionary_list(input_file)
   for student in student_list:
-    insert_student(student["Student_ID"],student["Fname-Lname"],student["Email"], student["Program"], student["Campus"], student["Start_Date"])
+    insert_student(student["Student_ID"],student["Fname-Lname"],student["Email"], student["Program"], student["Campus"], student["Start_Date"],upload_set)
 
 # Function to build enrollments
-def build_enrollments(input_file):
+def build_enrollments(input_file,upload_set):
   course_list=text_to_dictionary_list(input_file)
   memo=set()
   no_dups=[]
@@ -89,12 +106,6 @@ def build_enrollments(input_file):
       memo.add(course["Course"]+","+course["Student_ID"]+","+course["Section"])
 
   for enrollment in no_dups:
-    insert_enrollment(enrollment["Course"],enrollment["Student_ID"],enrollment["Term"],enrollment["Grade"])    
+    insert_enrollment(enrollment["Course"],enrollment["Student_ID"],enrollment["Term"],enrollment["Grade"],upload_set)    
 
 
-# # Function to extract and upload transfer_data.txt to database
-# def upload_transfer_data(input_file):
-#   enrollment_list=text_to_dictionary_list(input_file)
-
-#   for enrollment in enrollment_list:
-#     insert_enrollment(enrollment["Course"],enrollment["Student_ID"],enrollment["Section"],enrollment["Grade"])

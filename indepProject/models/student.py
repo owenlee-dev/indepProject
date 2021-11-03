@@ -7,7 +7,7 @@ class Student(db.Model):
   campus = db.Column(db.String(5), default=None)
   program=db.Column(db.String(10), default=None)
   start_date=db.Column(db.String(10), default=None)
-  # dataset=db.Column(db.DateTime,db.ForeignKey('dataset.dataset_datetime'),primary_key=True)
+  dataset=db.Column(db.DateTime,db.ForeignKey('dataset.upload_datetime'),primary_key=True)
 
   # def __init__ (self,student_id, name, dataset):
   #   self.student_id=student_id

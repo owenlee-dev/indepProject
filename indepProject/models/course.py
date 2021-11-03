@@ -6,7 +6,7 @@ class Course(db.Model):
   section=db.Column(db.String(10),primary_key=True)
   title=db.Column(db.String(50),primary_key=False)
   credit_hours=db.Column(db.String(3),primary_key=False, nullable=False)
-  # dataset=db.Column(db.DateTime,db.ForeignKey('dataset.dataset_datetime'),primary_key=True)
+  dataset=db.Column(db.DateTime,db.ForeignKey('dataset.upload_datetime'),primary_key=True)
 
   # def __init__(self, course_id,title, section,credit_hours):
   #   now =datetime.now()

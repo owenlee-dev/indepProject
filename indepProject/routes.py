@@ -1,15 +1,15 @@
 from indepProject import app
 from flask import render_template, session, request, flash, redirect, url_for
-from .tools import upload_course_data,upload_person_data,build_enrollments
+from .tools import upload_and_extract
 from .models.shared import db
 from .models import User
+person_file="indepProject\inputFiles\personData.txt"
+course_file="indepProject\inputFiles\CourseData.txt"
 
 @app.route('/')
 def home():
   if 'username' in session:
-    upload_person_data("indepProject\inputFiles\personData.txt")
-    upload_course_data("indepProject\inputFiles\CourseData.txt")
-    build_enrollments("indepProject\inputFiles\CourseData.txt")
+    upload_and_extract(person_file,course_file)
     return render_template('home.html',usergroup=session['usergroup'].capitalize())
   return render_template('login.html')
     
